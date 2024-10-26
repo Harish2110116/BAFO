@@ -1,0 +1,639 @@
+// import React, { useState, useEffect } from 'react';
+// import { View, Button, Text, StyleSheet, Alert, Platform, BackHandler } from 'react-native';
+// import { Audio } from 'expo-av';
+// import * as FileSystem from 'expo-file-system';
+// import * as Location from 'expo-location';
+// import * as Speech from 'expo-speech';
+
+// // Haversine formula to calculate distance between two coordinates
+// const haversineDistance = (lat1, lon1, lat2, lon2) => {
+//   const toRad = (value) => (value * Math.PI) / 180;
+
+//   const R = 6371e3; // Earth's radius in meters
+//   const φ1 = toRad(lat1);
+//   const φ2 = toRad(lat2);
+//   const Δφ = toRad(lat2 - lat1);
+//   const Δλ = toRad(lon2 - lon1);
+
+//   const a = Math.sin(Δφ / 2) ** 2 +
+//             Math.cos(φ1) * Math.cos(φ2) *
+//             Math.sin(Δλ / 2) ** 2;
+
+//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+//   return R * c; // Distance in meters
+// };
+
+// export default function App() {
+//   const [recording, setRecording] = useState(null);
+//   const [recordingUri, setRecordingUri] = useState('');
+//   const [text, setText] = useState('');
+//   const [isRecording, setIsRecording] = useState(false);
+//   const [sound, setSound] = useState(null);
+
+//   const targetLatitude = 13.0899;
+//   const targetLongitude = 80.1771;
+
+//   const startRecording = async () => {
+//     try {
+//       const { status } = await Audio.requestPermissionsAsync();
+//       if (status !== 'granted') {
+//         Alert.alert('Permission Denied', 'Permission to access microphone was denied');
+//         return;
+//       }
+
+//       const { recording } = await Audio.Recording.createAsync(
+//         Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+//       );
+
+//       setRecording(recording);
+//       setIsRecording(true);
+//       console.log('Recording started');
+//     } catch (error) {
+//       console.error('Error starting recording:', error);
+//     }
+//   };
+
+//   const stopRecording = async () => {
+//     try {
+//       if (recording) {
+//         await recording.stopAndUnloadAsync();
+//         const uri = recording.getURI();
+//         setRecordingUri(uri);
+//         setRecording(null);
+//         setIsRecording(false);
+//         console.log('Recording stopped and saved to', uri);
+//       }
+//     } catch (error) {
+//       console.error('Error stopping recording:', error);
+//     }
+//   };
+
+//   const sendAudioToServer = async () => {
+//     if (!recordingUri) {
+//       Alert.alert('No Audio', 'No audio file selected');
+//       return;
+//     }
+
+//     try {
+//       const audioContent = await FileSystem.readAsStringAsync(recordingUri, {
+//         encoding: FileSystem.EncodingType.Base64,
+//       });
+
+//       const SERVER_URL = 'http://192.168.29.222:3000/process-audio'; // Update this to your server IP
+
+//       const response = await fetch(SERVER_URL, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ audioContent }),
+//       });
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         console.error('Server response error:', errorData);
+//         return;
+//       }
+
+//       const data = await response.json();
+//       console.log('Server response data:', data);
+
+//       if (data.audioFileName) {
+//         // Play the audio file
+//         const { sound } = await Audio.Sound.createAsync(
+//           { uri: `http://192.168.29.222:3000/public/${data.audioFileName}` }
+//         );
+//         setSound(sound);
+//         await sound.playAsync();
+//         setText(data.transcript);
+//       } else {
+//         console.log('Unexpected response format:', data);
+//       }
+//     } catch (error) {
+//       console.error('Network or server error:', error);
+//     }
+//   };
+
+//   const checkLocation = async () => {
+//     try {
+//       const { status } = await Location.requestForegroundPermissionsAsync();
+//       if (status !== 'granted') {
+//         Alert.alert('Permission Denied', 'Permission to access location was denied');
+//         return;
+//       }
+  
+//       const { coords } = await Location.getCurrentPositionAsync({});
+//       const { latitude, longitude } = coords;
+  
+//       console.log(`Current location: Latitude ${latitude}, Longitude ${longitude}`);
+      
+//       // Check if within ±5 meters radius of the target location
+//       const distance = haversineDistance(latitude, longitude, targetLatitude, targetLongitude);
+      
+//       if (distance <= 5) {
+//         const message = 'You have arrived at your destination';
+//         Alert.alert('Destination Reached', message);
+//         Speech.speak(message);
+//         setText(message);
+//       } else {
+//         const message = `You are ${distance.toFixed(2)} meters from the destination`;
+//         Alert.alert('Location Check', message);
+//         Speech.speak(message); // Add this line to speak the distance message
+//         setText(message);
+//       }
+//     } catch (error) {
+//       console.error('Error getting location:', error);
+//     }
+//   };
+
+//   const handleExit = () => {
+//     if (Platform.OS === 'android') {
+//       BackHandler.exitApp();
+//     } else {
+//       Alert.alert('Exit', 'This functionality is not available on iOS.');
+//     }
+//   };
+
+//   useEffect(() => {
+//     const backAction = () => {
+//       Alert.alert('Exit App', 'Are you sure you want to exit?', [
+//         {
+//           text: 'Cancel',
+//           onPress: () => null,
+//           style: 'cancel',
+//         },
+//         { text: 'OK', onPress: () => BackHandler.exitApp() },
+//       ]);
+//       return true;
+//     };
+
+//     const backHandler = BackHandler.addEventListener(
+//       'hardwareBackPress',
+//       backAction
+//     );
+
+//     return () => backHandler.remove();
+//   }, []);
+
+//   return (
+//     <View style={styles.container}>
+//       <Button
+//         title={isRecording ? 'Stop Recording' : 'Start Recording'}
+//         onPress={isRecording ? stopRecording : startRecording}
+//       />
+//       <Button title="Send Audio to Server" onPress={sendAudioToServer} />
+//       <Button title="Check Location" onPress={checkLocation} />
+//       <Button title="Exit App" onPress={handleExit} />
+//       <Text>Transcription:</Text>
+//       <Text>{text}</Text>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     padding: 20,
+//   },
+// });
+
+// import React, { useState, useEffect } from 'react';
+// import { View, Button, Text, StyleSheet, Alert, Platform, BackHandler } from 'react-native';
+// import { Audio } from 'expo-av';
+// import * as Location from 'expo-location';
+// import * as Speech from 'expo-speech';
+// import busStopsData from './assets/bus_stops_with_coordinates.json'; // Import JSON directly
+
+// // Haversine formula to calculate distance between two coordinates
+// const haversineDistance = (lat1, lon1, lat2, lon2) => {
+//   const toRad = (value) => (value * Math.PI) / 180;
+
+//   const R = 6371e3; // Earth's radius in meters
+//   const φ1 = toRad(lat1);
+//   const φ2 = toRad(lat2);
+//   const Δφ = toRad(lat2 - lat1);
+//   const Δλ = toRad(lon2 - lon1);
+
+//   const a = Math.sin(Δφ / 2) ** 2 +
+//             Math.cos(φ1) * Math.cos(φ2) *
+//             Math.sin(Δλ / 2) ** 2;
+
+//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+//   return R * c; // Distance in meters
+// };
+
+// export default function App() {
+//   const [recording, setRecording] = useState(null);
+//   const [recordingUri, setRecordingUri] = useState('');
+//   const [text, setText] = useState('');
+//   const [isRecording, setIsRecording] = useState(false);
+//   const [sound, setSound] = useState(null);
+//   const [busStops, setBusStops] = useState(busStopsData); // Initialize with imported data
+//   const [targetStop, setTargetStop] = useState({ latitude: null, longitude: null });
+
+//   useEffect(() => {
+//     // Find the target stop data from the bus stops JSON
+//     const targetStopData = busStops.find(stop => stop.stop_name === 'OIL MILL');
+//     if (targetStopData) {
+//       setTargetStop({
+//         latitude: targetStopData.latitude,
+//         longitude: targetStopData.longitude
+//       });
+//     }
+//   }, [busStops]);
+
+//   const startRecording = async () => {
+//     try {
+//       const { status } = await Audio.requestPermissionsAsync();
+//       if (status !== 'granted') {
+//         Alert.alert('Permission Denied', 'Permission to access microphone was denied');
+//         return;
+//       }
+
+//       const { recording } = await Audio.Recording.createAsync(
+//         Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+//       );
+
+//       setRecording(recording);
+//       setIsRecording(true);
+//       console.log('Recording started');
+//     } catch (error) {
+//       console.error('Error starting recording:', error);
+//     }
+//   };
+
+//   const stopRecording = async () => {
+//     try {
+//       if (recording) {
+//         await recording.stopAndUnloadAsync();
+//         const uri = recording.getURI();
+//         setRecordingUri(uri);
+//         setRecording(null);
+//         setIsRecording(false);
+//         console.log('Recording stopped and saved to', uri);
+//       }
+//     } catch (error) {
+//       console.error('Error stopping recording:', error);
+//     }
+//   };
+
+//   const sendAudioToServer = async () => {
+//     if (!recordingUri) {
+//       Alert.alert('No Audio', 'No audio file selected');
+//       return;
+//     }
+
+//     try {
+//       const audioContent = await FileSystem.readAsStringAsync(recordingUri, {
+//         encoding: FileSystem.EncodingType.Base64,
+//       });
+
+//       const SERVER_URL = 'http://192.168.29.222:3000/process-audio'; // Update this to your server IP
+
+//       const response = await fetch(SERVER_URL, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ audioContent }),
+//       });
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         console.error('Server response error:', errorData);
+//         return;
+//       }
+
+//       const data = await response.json();
+//       console.log('Server response data:', data);
+
+//       if (data.audioFileName) {
+//         // Play the audio file
+//         const { sound } = await Audio.Sound.createAsync(
+//           { uri: `http://192.168.29.222:3000/public/${data.audioFileName}` }
+//         );
+//         setSound(sound);
+//         await sound.playAsync();
+//         setText(data.transcript);
+//       } else {
+//         console.log('Unexpected response format:', data);
+//       }
+//     } catch (error) {
+//       console.error('Network or server error:', error);
+//     }
+//   };
+
+//   const checkLocation = async () => {
+//     if (!targetStop.latitude || !targetStop.longitude) {
+//       Alert.alert('Error', 'Target stop location not found');
+//       return;
+//     }
+
+//     try {
+//       const { status } = await Location.requestForegroundPermissionsAsync();
+//       if (status !== 'granted') {
+//         Alert.alert('Permission Denied', 'Permission to access location was denied');
+//         return;
+//       }
+  
+//       const { coords } = await Location.getCurrentPositionAsync({});
+//       const { latitude, longitude } = coords;
+  
+//       console.log(`Current location: Latitude ${latitude}, Longitude ${longitude}`);
+      
+//       const distance = haversineDistance(latitude, longitude, targetStop.latitude, targetStop.longitude);
+      
+//       if (distance <= 5) {
+//         const message = 'You have arrived at your destination';
+//         Alert.alert('Destination Reached', message);
+//         Speech.speak(message);
+//         setText(message);
+//       } else {
+//         const message = `You are ${distance.toFixed(2)} meters from the destination`;
+//         Alert.alert('Location Check', message);
+//         Speech.speak(message); // Add this line to speak the distance message
+//         setText(message);
+//       }
+//     } catch (error) {
+//       console.error('Error getting location:', error);
+//     }
+//   };
+
+//   const handleExit = () => {
+//     if (Platform.OS === 'android') {
+//       BackHandler.exitApp();
+//     } else {
+//       Alert.alert('Exit', 'This functionality is not available on iOS.');
+//     }
+//   };
+
+//   useEffect(() => {
+//     const backAction = () => {
+//       Alert.alert('Exit App', 'Are you sure you want to exit?', [
+//         {
+//           text: 'Cancel',
+//           onPress: () => null,
+//           style: 'cancel',
+//         },
+//         { text: 'OK', onPress: () => BackHandler.exitApp() },
+//       ]);
+//       return true;
+//     };
+
+//     const backHandler = BackHandler.addEventListener(
+//       'hardwareBackPress',
+//       backAction
+//     );
+
+//     return () => backHandler.remove();
+//   }, []);
+
+//   return (
+//     <View style={styles.container}>
+//       <Button
+//         title={isRecording ? 'Stop Recording' : 'Start Recording'}
+//         onPress={isRecording ? stopRecording : startRecording}
+//       />
+//       <Button title="Send Audio to Server" onPress={sendAudioToServer} />
+//       <Button title="Check Location" onPress={checkLocation} />
+//       <Button title="Exit App" onPress={handleExit} />
+//       <Text>Transcription:</Text>
+//       <Text>{text}</Text>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     padding: 20,
+//   },
+// });
+// import React, { useState, useEffect } from 'react';
+// import { View, Button, Text, StyleSheet, Alert, Platform, BackHandler } from 'react-native';
+// import { Audio } from 'expo-av';
+// import * as Location from 'expo-location';
+// import * as Speech from 'expo-speech';
+// import * as FileSystem from 'expo-file-system';
+// import busStopsData from './assets/bus_stops_with_coordinates.json'; // Import JSON directly
+
+// const haversineDistance = (lat1, lon1, lat2, lon2) => {
+//   const toRad = (value) => (value * Math.PI) / 180;
+//   const R = 6371e3; // Earth's radius in meters
+//   const φ1 = toRad(lat1);
+//   const φ2 = toRad(lat2);
+//   const Δφ = toRad(lat2 - lat1);
+//   const Δλ = toRad(lon2 - lon1);
+
+//   const a = Math.sin(Δφ / 2) ** 2 +
+//     Math.cos(φ1) * Math.cos(φ2) *
+//     Math.sin(Δλ / 2) ** 2;
+
+//   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+//   return R * c; // Distance in meters
+// };
+
+// export default function App() {
+//   const [recording, setRecording] = useState(null);
+//   const [recordingUri, setRecordingUri] = useState('');
+//   const [text, setText] = useState('');
+//   const [isRecording, setIsRecording] = useState(false);
+//   const [sound, setSound] = useState(null);
+//   const [busStops, setBusStops] = useState(busStopsData); // Initialize with imported data
+//   const [targetStop, setTargetStop] = useState({ latitude: null, longitude: null });
+//   const [destinationStopName, setDestinationStopName] = useState('');
+
+//   useEffect(() => {
+//     const targetStopData = busStops.find(stop => stop.stop_name === 'OIL MILL');
+//     if (targetStopData) {
+//       setTargetStop({
+//         latitude: targetStopData.latitude,
+//         longitude: targetStopData.longitude
+//       });
+//     }
+//   }, [busStops]);
+
+//   const startRecording = async () => {
+//     try {
+//       const { status } = await Audio.requestPermissionsAsync();
+//       if (status !== 'granted') {
+//         Alert.alert('Permission Denied', 'Permission to access microphone was denied');
+//         return;
+//       }
+
+//       const { recording } = await Audio.Recording.createAsync(
+//         Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
+//       );
+
+//       setRecording(recording);
+//       setIsRecording(true);
+//       console.log('Recording started');
+//     } catch (error) {
+//       console.error('Error starting recording:', error);
+//     }
+//   };
+
+//   const stopRecording = async () => {
+//     try {
+//       if (recording) {
+//         await recording.stopAndUnloadAsync();
+//         const uri = recording.getURI();
+//         setRecordingUri(uri);
+//         setRecording(null);
+//         setIsRecording(false);
+//         console.log('Recording stopped and saved to', uri);
+//       }
+//     } catch (error) {
+//       console.error('Error stopping recording:', error);
+//     }
+//   };
+
+//   const sendAudioToServer = async () => {
+//     if (!recordingUri) {
+//       Alert.alert('No Audio', 'No audio file selected');
+//       return;
+//     }
+
+//     try {
+//       const audioContent = await FileSystem.readAsStringAsync(recordingUri, {
+//         encoding: FileSystem.EncodingType.Base64,
+//       });
+
+//       const SERVER_URL = 'http://192.168.29.222:3000/process-audio'; // Update this to your server IP
+
+//       const response = await fetch(SERVER_URL, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ audioContent }),
+//       });
+
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         console.error('Server response error:', errorData);
+//         return;
+//       }
+
+//       const data = await response.json();
+//       console.log('Server response data:', data);
+
+//       if (data.audioFileName) {
+//         const { sound } = await Audio.Sound.createAsync(
+//           { uri: `http://192.168.29.222:3000/public/${data.audioFileName}` }
+//         );
+//         setSound(sound);
+//         await sound.playAsync();
+//         setText(data.transcript);
+//         setDestinationStopName(data.transcript); // Set the destination stop name
+//       } else {
+//         console.log('Unexpected response format:', data);
+//       }
+//     } catch (error) {
+//       console.error('Network or server error:', error);
+//     }
+//   };
+
+//   const checkLocation = async () => {
+//     try {
+//       await startRecording();
+//       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
+//       await stopRecording();
+//       await sendAudioToServer();
+
+//       const targetStopData = busStops.find(stop => stop.stop_name === destinationStopName);
+//       if (targetStopData) {
+//         setTargetStop({
+//           latitude: targetStopData.latitude,
+//           longitude: targetStopData.longitude
+//         });
+
+//         const { status } = await Location.requestForegroundPermissionsAsync();
+//         if (status !== 'granted') {
+//           Alert.alert('Permission Denied', 'Permission to access location was denied');
+//           return;
+//         }
+
+//         const { coords } = await Location.getCurrentPositionAsync({});
+//         const { latitude, longitude } = coords;
+
+//         console.log(`Current location: Latitude ${latitude}, Longitude ${longitude}`);
+
+//         const distance = haversineDistance(latitude, longitude, targetStopData.latitude, targetStopData.longitude);
+
+//         if (distance <= 5) {
+//           const message = 'You have arrived at your destination';
+//           Alert.alert('Destination Reached', message);
+//           Speech.speak(message);
+//           setText(message);
+//         } else {
+//           const message = `You are ${distance.toFixed(2)} meters from the destination`;
+//           Alert.alert('Location Check', message);
+//           Speech.speak(message); // Add this line to speak the distance message
+//           setText(message);
+//         }
+//       } else {
+//         Alert.alert('Error', 'Target stop location not found');
+//       }
+//     } catch (error) {
+//       console.error('Error during check location process:', error);
+//     }
+//   };
+
+//   const handleExit = () => {
+//     if (Platform.OS === 'android') {
+//       BackHandler.exitApp();
+//     } else {
+//       Alert.alert('Exit', 'This functionality is not available on iOS.');
+//     }
+//   };
+
+//   useEffect(() => {
+//     const backAction = () => {
+//       Alert.alert('Exit App', 'Are you sure you want to exit?', [
+//         {
+//           text: 'Cancel',
+//           onPress: () => null,
+//           style: 'cancel',
+//         },
+//         { text: 'OK', onPress: () => BackHandler.exitApp() },
+//       ]);
+//       return true;
+//     };
+
+//     const backHandler = BackHandler.addEventListener(
+//       'hardwareBackPress',
+//       backAction
+//     );
+
+//     return () => backHandler.remove();
+//   }, []);
+
+//   return (
+//     <View style={styles.container}>
+//       <Button
+//         title={isRecording ? 'Stop Recording' : 'Start Recording'}
+//         onPress={isRecording ? stopRecording : startRecording}
+//       />
+//       <Button title="Send Audio to Server" onPress={sendAudioToServer} />
+//       <Button title="Check Location" onPress={checkLocation} />
+//       <Button title="Exit App" onPress={handleExit} />
+//       <Text>Transcription:</Text>
+//       <Text>{text}</Text>
+//       <Text>Destination Stop Name: {destinationStopName}</Text>
+//     </View>
+//   );
+// }
+
+// const styles = StyleSheet.create({
+//   container: {
+//     flex: 1,
+//     justifyContent: 'center',
+//     padding: 20,
+//   },
+// });
