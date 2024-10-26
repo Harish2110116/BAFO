@@ -52,7 +52,7 @@ def process_bus_stops(api_key, input_file, output_file):
         json.dump(results, f, indent=4)
 
 if __name__ == '__main__':
-    api_key = 'AIzaSyCYn0RdQs34W_zkM2YnU1XLv1_B3Y6xo3k'  # Replace with your Google Maps API Key
+    api_key = ''  # Replace with your Google Maps API Key
     input_file = 'stop_names.json'  # Replace with your JSON file containing bus stop names
     output_file = 'bus_stops_with_coordinates.json'
     
