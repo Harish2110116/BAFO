@@ -1,10 +1,10 @@
 {
   "type": "service_account",
   "project_id": "bafovoice",
-  "private_key_id": "3fc8f81304aedca3d79ad2436831769cb1ed812e",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCle5YrUuG1qlTJ\nUfbi9x24xvBxDoH3eML9RC1CpaDKTsUmpWiwS5mwDjhAP23KT2dRtHAR3SOrvFvh\ni4k1y7zlge0MHvGadCJB3B9FHo5oVN9AOn80lzQ1xJuor+LHnZNQ6IUBFwApkS3t\nepXn5G+qNtDjYiLo7Ba5TNwYTTY2xWxnkvqrYGiN51Zo0rNc3l4J0nGD5JxzSdcb\nJs/jhCS22vAN50x7zliytg0XMcgixbbAYAbM3B94PTks+SiVQqEwjtl6IDSUE9Hq\n51aBRG0cOa+1Yy34y/U0rXZzejOdTb6yYbePyGct0scmNOyJgcNfKnAsPXA6VO0Q\ng/KOZ4ClAgMBAAECggEASDg28eJiie9zwEaqqiPxzzXXMmgD9XY5FuH9pLP3B8O3\ny+VtWl8sDAcwqm1kI2Ji82f9bvZlPmpeaQEGGTm4zyrUQrFwfJlJaBfCd95dhQ/h\nPL0qzc9dZEfRLR3RqY9N/wXzIeYhVoK7GgShTopF53Gz2UB3ftKmGil+doaf7een\n8W5BM47GrnvEvRNq0rlqE8qJdRkQoi8Aba3juKwYvDBqN8akKFyjB0WyyVU2EKJf\nKX7ZPRvS9B8z6KXOUZc9mW/R4MeDct5a+8ARz80H9jNmod2T1Y12EEQuuoJ4m7ef\njkPWWvuKY8NdNg1xTrxFzxE2UzClsD6e5lx815JKgwKBgQDerz/NFSAyawxG6GGR\nX6sOV725LAGYS04xL2FDzH+IvIj71mBcEVPwnDeyJbqVam0w0OjiAjUVL5KqNbw6\nhmwbdPkLgCWdo/yLrBqjMjn8qkRxGRdiXleYtovoAoGFb/ECUvJ4YI0sAHfWZ1mt\na3x9iIVyFi5elVe6+d5S8kzTowKBgQC+PYaSNN+J4UMHS6HSAohpJQ8eiQwyHqIG\nZKfFAGo53jIxlJL5STJ/pYffqFydpksEweJtgITNu9GK3P9ZqITWc7QrzM+Md3vN\n3RFYqbUDNvT9sIky8OtBWj3U0oyAq7crh/IicPqRn6W7T7KjlyTCs1IjUkrC7NP+\nrlQ3VJ1fFwKBgDZQhn5OJdFGXPM6oPmlXQKdkhAFVMpBq+vBQ7cWvRCr87mBW3V5\nYIDyiX8xRqZFFCbw/ayKn0nwlZRgkO2xddLooAoXEpW1ttaWftTJXm1rVlBDr3l1\ny2XbOJq5acATQrSvaKbF3gkagCBSiwQKkI3J68qc8Ghvgrt/UKPop6aDAoGBAJM0\n2KTZ9P+kJ1HF3Hm9LADwhDqEocNGoOmBibCPGaOdpAlphjEPyturIvCWPtRekT4l\nKSjCggEQjJx/VbfzBpdLAOfDm/Z9nnc10O5io4bRR9HmgMPCWMhBJAdCxSXrudkd\nYOf1tG5qsru2d+zOT8u5Jp3eV6ttxr0T+Ga4Ou4RAoGAMEo/LwTpBY1TL8vslqtL\nBTZMbBvlVaaaBmpfN4UTWfZWLWLHQbNf/bk3lQJqdGUXl5Nn7mLLYhP00uP7aMLg\n+x8+bNn2KI1vOsERp8efZGG4KTCVTdQWj5tJqwZ2pEeS29fWQX5eSVLQcpnq3tHT\nNbWqKAkQcvDdEp0ZFJOSwh4=\n-----END PRIVATE KEY-----\n",
+  "private_key_id": "",
+  "private_key": "-----BEGIN PRIVATE KEY-----",
   "client_email": "speech-demo@bafovoice.iam.gserviceaccount.com",
-  "client_id": "106492141133369806700",
+  "client_id": "",
   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
   "token_uri": "https://oauth2.googleapis.com/token",
   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
